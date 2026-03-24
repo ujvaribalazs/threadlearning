@@ -3,6 +3,7 @@ package com.example.threadlearning;
 import com.example.threadlearning.application.dto.BenchmarkResult;
 import com.example.threadlearning.application.dto.SimulationRequest;
 import com.example.threadlearning.application.dto.SimulationResult;
+import com.example.threadlearning.application.port.OperationReporter;
 import com.example.threadlearning.application.port.OperationSource;
 import com.example.threadlearning.application.port.SimulationLogger;
 import com.example.threadlearning.application.port.SimulationRunner;
@@ -11,10 +12,12 @@ import com.example.threadlearning.application.usecase.RunSimulationUseCase;
 import com.example.threadlearning.config.SimulationProperties;
 import com.example.threadlearning.domain.models.BankAccount;
 import com.example.threadlearning.domain.models.FamilyMember;
+import com.example.threadlearning.infrastructure.HttpOperationReporter;
 import com.example.threadlearning.infrastructure.generators.RandomOperationGenerator;
 import com.example.threadlearning.infrastructure.ConsoleSimulationLogger;
 import com.example.threadlearning.infrastructure.runners.FixedPoolRunner;
 import com.example.threadlearning.infrastructure.runners.PlainThreadsRunner;
+import com.example.threadlearning.infrastructure.runners.VirtualThreadsRunner;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,13 +45,16 @@ public class SimulationStarter {
             SimulationRunner simulationRunner = switch (properties.getRunnerType()) {
                 case "plain" -> new PlainThreadsRunner();
                 case "fixed" -> new FixedPoolRunner(properties.getPoolSize());
+                case "virtual" -> new VirtualThreadsRunner();
                 default -> throw new IllegalArgumentException(
                         "Unknown runner type: " + properties.getRunnerType()
                 );
             };
 
+            OperationReporter reporter = new HttpOperationReporter("https://httpbin.org/post");
+
             ProcessOperationUseCase processOperationUseCase =
-                    new ProcessOperationUseCase(operationSource, bankAccount, simulationLogger);
+                    new ProcessOperationUseCase(operationSource, bankAccount, simulationLogger, reporter);
 
             RunSimulationUseCase runSimulationUseCase =
                     new RunSimulationUseCase(

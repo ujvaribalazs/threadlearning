@@ -1,6 +1,7 @@
 package com.example.threadlearning.application.usecase;
 
 import com.example.threadlearning.application.dto.OperationExecutionResult;
+import com.example.threadlearning.application.port.OperationReporter;
 import com.example.threadlearning.application.port.OperationSource;
 import com.example.threadlearning.application.port.SimulationLogger;
 import com.example.threadlearning.domain.models.BankAccount;
@@ -13,15 +14,18 @@ public class ProcessOperationUseCase {
     private final OperationSource operationSource;
     private final BankAccount bankAccount;
     private final SimulationLogger simulationLogger;
+    private final OperationReporter operationReporter;
 
     public ProcessOperationUseCase(
             OperationSource operationSource,
             BankAccount bankAccount,
-            SimulationLogger simulationLogger
+            SimulationLogger simulationLogger, OperationReporter operationReporter
+
     ) {
         this.operationSource = operationSource;
         this.bankAccount = bankAccount;
         this.simulationLogger = simulationLogger;
+        this.operationReporter = operationReporter;
     }
 
     public OperationExecutionResult execute(FamilyMember familyMember) {
@@ -46,12 +50,15 @@ public class ProcessOperationUseCase {
                     success
             );
         }
-
-        return new OperationExecutionResult(
+        OperationExecutionResult result = new OperationExecutionResult(
                 familyMember.getMemberId(),
                 operation.operationType(),
                 operation.amount(),
                 success
         );
+
+        operationReporter.report(result); // blokkoló I/O pont
+        return result;
+
     }
 }
