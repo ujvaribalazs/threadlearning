@@ -1,15 +1,13 @@
 package com.example.threadlearning.application.dto;
 
-public record SimulationResult(
-        int initialBalance,
-        int finalBalance,
+public record MemberSimulationResult(
+        String memberId,
         int totalOperations,
         int depositAttempts,
         int withdrawAttempts,
         int successfulWithdrawals,
         int failedWithdrawals,
         int totalDepositedAmount,
-        int totalWithdrawnAmount,
-        java.util.List<MemberSimulationResult> memberResult
+        int totalWithdrawnAmount
 ) {
 }
